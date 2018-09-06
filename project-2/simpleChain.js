@@ -34,7 +34,10 @@ class Blockchain {
     newBlock.hash = SHA256(JSON.stringify(newBlock)).toString(); // hashing the block with SHA256
     dbInterface.addBlock(newBlock.height, newBlock)
     .then(function () {
-      console.log("Successfully added block #" + newBlock.height);
+      return dbInterface.setHeight(newBlock.height);
+    })
+    .then(function() {
+      console.log("Successfully added block #" + newBlock.height);    
     }).catch(function (err) {
       console.log(err);
       console.log("Encountered error while adding block #" + newBlock.height);
@@ -52,6 +55,7 @@ class Blockchain {
   }
 
   validateBlock(originalBlock){
+    console.log(originalBlock)
     let block = JSON.parse(JSON.stringify(originalBlock)) // copying a block
     let blockHash = block.hash; // get block's hash
 
@@ -70,11 +74,12 @@ class Blockchain {
     
     dbInterface.getAllBlocks()
     .then((blocks) => {
-      for (var i = 1; i < blocks.length - 1; i++) {
+      for (var i = 1; i <= blocks.length - 1; i++) {
         var block = blocks[i];
         // validate block
         if (!this.validateBlock(block)) errorLog.push(i);
         
+        if (i == blocks.length - 1) break; // last block doesnt have a second block with a prev hash
         // compare blocks hash link
         let blockHash = block.hash;
         let previousHash = blocks[i + 1].previousBlockHash;
@@ -83,6 +88,7 @@ class Blockchain {
           errorLog.push(i);
         }
       }
+
 
       if (errorLog.length > 0) {
         console.log('Block errors = ' + errorLog.length);

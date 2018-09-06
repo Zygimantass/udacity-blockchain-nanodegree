@@ -7,9 +7,18 @@ exports.addBlock = (height,block) => {
   return new Promise(function(resolve, reject) {
     db.put(height, JSON.stringify(block).toString(), function(err) {
       if (err) reject(err);
-      resolve();  
+      resolve();
     })
   });
+}
+
+exports.setHeight = (height, block) => {
+  return new Promise(function(resolve, reject) {
+    db.put("height", height.toString(), (err) => {
+      if (err) reject(err);
+      resolve();
+    })
+  })
 }
 
 // Get data from levelDB with key
@@ -25,19 +34,12 @@ exports.getBlock = (key) => {
 // loops through all the blocks to get the current block height and returns it
 
 exports.getBlockHeight = () => {
-  let height = 0;
-  return new Promise(function (resolve, reject) {
-    db.createReadStream()
-    .on('data', function(data) {
-      height++;
+  return new Promise(function(resolve, reject) {
+    db.get("height", function(err, value) {
+      if (err) resolve(0);
+      resolve(parseInt(value));
     })
-    .on('error', function(err) {
-      reject(err);
-    })
-    .on('close', function() {
-      resolve(height);
-    })
-  });
+  })
 }
 
 // loops through all the blocks in db and returns them
